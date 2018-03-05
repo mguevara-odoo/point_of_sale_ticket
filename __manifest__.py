@@ -28,6 +28,7 @@
     'depends': ['point_of_sale'],
     'data': [
         'views/pos_config_view.xml',
+        'views/pos_order_view.xml',
         'views/template.xml'],
     'installable': True,
     'auto_install': False,

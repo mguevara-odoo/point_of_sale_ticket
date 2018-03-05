@@ -1,0 +1,14 @@
+<odoo>
+<data>
+    <record id="view_pos_pos_form" model="ir.ui.view">
+        <field name="name">pos.order.form.inherit</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+        <field name="arch" type="xml">
+                <xpath expr="/form/header/button[@name='action_pos_order_invoice']" position="after">
+                    <button name="action_pos_order_ticket" string="Ticket" type="object" states="paid"></button>
+                </xpath>
+        </field>
+    </record>
+</data>
+</odoo>

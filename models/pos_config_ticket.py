@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 # Same Motion
+import logging
 import uuid
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
 
 class PosConfigTicket(models.Model):
     _inherit = 'pos.config'
@@ -17,3 +20,4 @@ class PosConfigTicket(models.Model):
         domain=[('type', '=', 'sale')],
         help="Accounting journal used to create tickets.",
         default=_default_ticket_journal)  
+    x_iface_ticketing = fields.Boolean(string='Ticketing', help='Enables ticket generation from the Point of Sale', default=True)

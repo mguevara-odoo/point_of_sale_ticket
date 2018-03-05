@@ -8,6 +8,9 @@
                 <xpath expr="//field[@name='invoice_journal_id']" position="after">
                     <field name="x_ticket_journal_id"/>
                 </xpath>
+                <xpath expr="//field[@name='iface_invoicing']" position="after">
+                    <field name="x_iface_ticketing"/>
+                </xpath>                
             </field>
         </record>
     </data>
