@@ -23,7 +23,7 @@ odoo.define('point_of_sale_ticket.models', function (require) {
     models.PosModel = models.PosModel.extend({
 
         push_and_invoice_order: function(order){
-            _super_posmodel.push_and_invoice_order.call(this, order);
+            //_super_posmodel.push_and_invoice_order.call(this, order);
             var self = this;
             var invoiced = new $.Deferred(); 
     
@@ -36,11 +36,11 @@ odoo.define('point_of_sale_ticket.models', function (require) {
     
             this.flush_mutex.exec(function(){
                 var done = new $.Deferred(); // holds the mutex
-                alert('Ticket is: ' + order.is_to_ticket() + ', Invoice is: ' + order.is_to_invoice());
+                //alert('Ticket is: ' + order.is_to_ticket() + ', Invoice is: ' + order.is_to_invoice());
                 if (order.is_to_invoice()) {
-                    var transfer = self._flush_orders([self.db.get_order(order_id)], {timeout:30000, to_invoice:true});
+                    var transfer = self._flush_orders([self.db.get_order(order_id)], {timeout:30000, to_invoice:true, to_ticket:false});
                 } else if (order.is_to_ticket()) {
-                    var transfer = self._flush_orders([self.db.get_order(order_id)], {timeout:30000, to_ticket:true});
+                    var transfer = self._flush_orders([self.db.get_order(order_id)], {timeout:30000, to_ticket:true, to_invoice:false});
                 }
                 transfer.fail(function(error){
                     invoiced.reject(error);
@@ -61,13 +61,12 @@ odoo.define('point_of_sale_ticket.models', function (require) {
     
                 return done;
     
-            });
-    
+            });    
             return invoiced;
         },
 
         _save_to_server: function (orders, options) {
-            _super_posmodel._save_to_server.call(this, orders, options);
+            //_super_posmodel._save_to_server.call(this, orders, options);
             if (!orders || !orders.length) {
                 var result = $.Deferred();
                 result.resolve([]);
@@ -83,7 +82,9 @@ odoo.define('point_of_sale_ticket.models', function (require) {
             // backend. In between create_from_ui and the success callback
             // new orders may have been added to it.
             var order_ids_to_sync = _.pluck(orders, 'id');
-            alert('Inv: ' + options.to_invoice + ', Tic: ' + options.to_ticket);
+
+            //alert('Inv: ' + options.to_invoice + ', Tic: ' + options.to_ticket);
+            //alert('is to invoice: ' + order.is_to_invoice() + ' ,is to ticket: ' + order.is_to_ticket());
             // we try to send the order. shadow prevents a spinner if it takes too long. (unless we are sending an invoice,
             // then we want to notify the user that we are waiting on something )
             var posOrderModel = new Model('pos.order');
@@ -95,8 +96,9 @@ odoo.define('point_of_sale_ticket.models', function (require) {
                 })],
                 undefined,
                 {
-                    shadow: !options.to_invoice,
-                    shadow: !options.to_ticket, // MGQ
+                    //shadow: !options.to_invoice,
+                    //shadow: !options.to_ticket,
+                    shadow: false, // MGQ
                     timeout: timeout
                 }
             ).then(function (server_ids) {
@@ -113,7 +115,8 @@ odoo.define('point_of_sale_ticket.models', function (require) {
                     }
     
                     // Hide error if already shown before ... 
-                    if ((!self.get('failed') || options.show_error) && !options.to_invoice) {
+                    //if ((!self.get('failed') || options.show_error) && !options.to_invoice) {
+                    if ((!self.get('failed') || options.show_error) && false) {
                         self.gui.show_popup('error-traceback',{
                             'title': error.data.message,
                             'body':  error.data.debug
@@ -132,105 +135,18 @@ odoo.define('point_of_sale_ticket.models', function (require) {
     var _super_order = models.Order.prototype;
 
     models.Order = models.Order.extend({
-        initialize: function(attributes,options){
-            _super_order.initialize.call(this, attributes, options);
+        initialize: function(attributes,options){            
                 var self = this;
                 options  = options || {};
         
-                this.init_locked    = true;
-                this.pos            = options.pos; 
-                this.selected_orderline   = undefined;
-                this.selected_paymentline = undefined;
-                this.screen_data    = {};  // see Gui
-                this.temporary      = options.temporary || false;
-                this.creation_date  = new Date();
-                this.to_invoice     = false;
                 this.to_ticket      = false; // MGQ
-                this.orderlines     = new OrderlineCollection();
-                this.paymentlines   = new PaymentlineCollection(); 
-                this.pos_session_id = this.pos.pos_session.id;
-                this.finalized      = false; // if true, cannot be modified.
-        
-                this.set({ client: null });
-        
-                if (options.json) {
-                    this.init_from_JSON(options.json);
-                } else {
-                    this.sequence_number = this.pos.pos_session.sequence_number++;
-                    this.uid  = this.generate_unique_id();
-                    this.name = _t("Order ") + this.uid;
-                    this.validation_date = undefined;
-                    this.fiscal_position = _.find(this.pos.fiscal_positions, function(fp) {
-                        return fp.id === self.pos.config.default_fiscal_position_id[0];
-                    });
-                }
-        
-                this.on('change',              function(){ this.save_to_db("order:change"); }, this);
-                this.orderlines.on('change',   function(){ this.save_to_db("orderline:change"); }, this);
-                this.orderlines.on('add',      function(){ this.save_to_db("orderline:add"); }, this);
-                this.orderlines.on('remove',   function(){ this.save_to_db("orderline:remove"); }, this);
-                this.paymentlines.on('change', function(){ this.save_to_db("paymentline:change"); }, this);
-                this.paymentlines.on('add',    function(){ this.save_to_db("paymentline:add"); }, this);
-                this.paymentlines.on('remove', function(){ this.save_to_db("paymentline:rem"); }, this);
-        
-                this.init_locked = false;
-                this.save_to_db();
-        
-                return this;
+
+                return _super_order.initialize.call(this, attributes, options);
             },
 
         init_from_JSON: function(json) {
-            _super_order.init_from_JSON.call(this, json)
-            var client;
-            this.sequence_number = json.sequence_number;
-            this.pos.pos_session.sequence_number = Math.max(this.sequence_number+1,this.pos.pos_session.sequence_number);
-            this.session_id    = json.pos_session_id;
-            this.uid = json.uid;
-            this.name = _t("Order ") + this.uid;
-            this.validation_date = json.creation_date;
-    
-            if (json.fiscal_position_id) {
-                var fiscal_position = _.find(this.pos.fiscal_positions, function (fp) {
-                    return fp.id === json.fiscal_position_id;
-                });
-    
-                if (fiscal_position) {
-                    this.fiscal_position = fiscal_position;
-                } else {
-                    console.error('ERROR: trying to load a fiscal position not available in the pos');
-                }
-            }
-    
-            if (json.partner_id) {
-                client = this.pos.db.get_partner_by_id(json.partner_id);
-                if (!client) {
-                    console.error('ERROR: trying to load a parner not available in the pos');
-                }
-            } else {
-                client = null;
-            }
-            this.set_client(client);
-    
-            this.temporary = false;     // FIXME
-            this.to_invoice = false;    // FIXME
-            this.to_ticket = false; // MGQ
-    
-            var orderlines = json.lines;
-            for (var i = 0; i < orderlines.length; i++) {
-                var orderline = orderlines[i][2];
-                this.add_orderline(new exports.Orderline({}, {pos: this.pos, order: this, json: orderline}));
-            }
-    
-            var paymentlines = json.statement_ids;
-            for (var i = 0; i < paymentlines.length; i++) {
-                var paymentline = paymentlines[i][2];
-                var newpaymentline = new exports.Paymentline({},{pos: this.pos, order: this, json: paymentline});
-                this.paymentlines.add(newpaymentline);
-    
-                if (i === paymentlines.length - 1) {
-                    this.select_paymentline(newpaymentline);
-                }
-            }
+            this.to_ticket = false;    // FIXME
+            return _super_order.init_from_JSON.call(this, json);
         },
         /* ---- Ticket --- */
         set_to_ticket: function(to_ticket) {

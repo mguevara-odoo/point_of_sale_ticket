@@ -110,14 +110,13 @@ class PosOrder(models.Model):
 
         for tmp_order in orders_to_save:
             to_invoice = tmp_order['to_invoice']
-            #to_ticket = tmp_order['to_ticket']
-            flag_ticket = not to_invoice
-            #raise Warning(flag_ticket)
-            order = tmp_order['data']
+            to_ticket = tmp_order['to_ticket']
 
-            #raise Warning(to_ticket)
-            #if to_invoice:
-            self._match_payment_to_invoice(order)
+            #raise Warning(to_ticket) 
+            order = tmp_order['data']
+            if to_invoice or to_ticket:
+                self._match_payment_to_invoice(order)
+          
             pos_order = self._process_order(order)
             order_ids.append(pos_order.id)
 
@@ -133,12 +132,9 @@ class PosOrder(models.Model):
                 pos_order.action_pos_order_invoice()
                 pos_order.invoice_id.sudo().action_invoice_open()
                 pos_order.account_move = pos_order.invoice_id.move_id
-            # is_ticket
-            else:
-                if flag_ticket:
-                    pos_order.action_pos_order_ticket()
-                    pos_order.invoice_id.sudo().action_invoice_open()
-                    pos_order.account_move = pos_order.invoice_id.move_id
-                
+            if to_ticket:
+                pos_order.action_pos_order_ticket()
+                pos_order.invoice_id.sudo().action_invoice_open()
+                pos_order.account_move = pos_order.invoice_id.move_id
+            
         return order_ids
-        
