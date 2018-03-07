@@ -1,1 +1,1 @@
-# point_of_sale_ticket
+# l10n_pe_einvoicing_point_of_sale

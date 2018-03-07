@@ -1,4 +1,4 @@
-odoo.define('point_of_sale_ticket.models', function (require) {
+odoo.define('l10n_pe_einvoicing_point_of_sale.models', function (require) {
     "use strict";
 
     var BarcodeParser = require('barcodes.BarcodeParser');

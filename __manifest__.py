@@ -7,14 +7,14 @@
 ##############################################################################
 {
 
-    'name' : 'Point of Sale Tickets',
+    'name' : 'Punto de ventas con localizacion de Peru',
 
     'summary': """
     Accounting Localization for Peru. 
     """,
 
     'description': """
-        Point of Sale with Ticket button
+        This module is the Point of Sale with Accounting localization for Peru
     """,
 
     'author': "Same Motion",

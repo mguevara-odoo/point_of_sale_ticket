@@ -26,7 +26,7 @@
                         <t t-if='widget.pos.config.x_iface_ticketing'>
                             <t t-if='widget.pos.get_order()'>
                                 <div t-attf-class='button js_ticket #{ widget.pos.get_order().is_to_ticket() ? "highlight" : ""} '>
-                                    <i class='fa fa-file-text-o' /> Boleta
+                                    <i class='fa fa-file-text-o' /> Ticket
                                 </div>
                             </t>
                         </t>

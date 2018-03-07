@@ -1,4 +1,4 @@
-odoo.define('point_of_sale_ticket.screens', function (require) {
+odoo.define('l10n_pe_einvoicing_point_of_sale.screens', function (require) {
     "use strict";
 
 	var gui = require('point_of_sale.gui');
@@ -8,7 +8,7 @@ odoo.define('point_of_sale_ticket.screens', function (require) {
 	var qweb = core.qweb;
     var _t = core._t;
 
-    ajax.loadXML('/point_of_sale_ticket/static/src/xml/pos_ticket.xml', qweb);
+    ajax.loadXML('/l10n_pe_einvoicing_point_of_sale/static/src/xml/pos_ticket.xml', qweb);
 
     screen.PaymentScreenWidget.include({
 
